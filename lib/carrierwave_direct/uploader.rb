@@ -36,6 +36,7 @@ module CarrierWaveDirect
 
     def key=(k)
       @key = k
+      @custom_key = true
       update_version_keys(:with => @key)
     end
 
@@ -61,7 +62,7 @@ module CarrierWaveDirect
           'expiration' => Time.now.utc + options[:expiration],
           'conditions' => [
             ["starts-with", "$utf8", ""],
-            ["starts-with", "$key", store_dir],
+            ["starts-with", "$key", (@custom_key ? @key.gsub(/\/#{Regexp.escape(FILENAME_WILDCARD)}$/, '') : store_dir)],
             ["starts-with", "$name", ""],
             ["starts-with", "$Filename", ""],
             ["starts-with", "$success_action_status", ""],
