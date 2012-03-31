@@ -55,12 +55,16 @@ module CarrierWaveDirect
       options[:expiration] ||= self.class.upload_expiration
       options[:max_file_size] ||= self.class.max_file_size
 
+      #$name, $Filename, $success_action_status are needed for plupload compatibility
       Base64.encode64(
         {
           'expiration' => Time.now.utc + options[:expiration],
           'conditions' => [
             ["starts-with", "$utf8", ""],
             ["starts-with", "$key", store_dir],
+            ["starts-with", "$name", ""],
+            ["starts-with", "$Filename", ""],
+            ["starts-with", "$success_action_status", ""],
             {"bucket" => fog_directory},
             {"acl" => acl},
             {"success_action_redirect" => success_action_redirect},
