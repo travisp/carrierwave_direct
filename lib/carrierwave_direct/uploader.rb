@@ -57,20 +57,24 @@ module CarrierWaveDirect
       options[:max_file_size] ||= self.class.max_file_size
 
       #$name, $Filename, $success_action_status are needed for plupload compatibility
+      conditions = [
+        ["starts-with", "$utf8", ""],
+        ["starts-with", "$key", (@custom_key ? @key.gsub(/\/#{Regexp.escape(FILENAME_WILDCARD)}$/, '') : store_dir)],
+        ["starts-with", "$name", ""],
+        ["starts-with", "$Filename", ""],
+        {"bucket" => fog_directory},
+        {"acl" => acl},
+        ["content-length-range", 1, options[:max_file_size]]
+      ]
+      if success_action_redirect.nil?
+        conditions << { "success_action_status" => "201" }
+      else
+        conditions << { "success_action_redirect" => success_action_redirect }
+      end
       Base64.encode64(
         {
           'expiration' => Time.now.utc + options[:expiration],
-          'conditions' => [
-            ["starts-with", "$utf8", ""],
-            ["starts-with", "$key", (@custom_key ? @key.gsub(/\/#{Regexp.escape(FILENAME_WILDCARD)}$/, '') : store_dir)],
-            ["starts-with", "$name", ""],
-            ["starts-with", "$Filename", ""],
-            ["starts-with", "$success_action_status", ""],
-            {"bucket" => fog_directory},
-            {"acl" => acl},
-            {"success_action_redirect" => success_action_redirect},
-            ["content-length-range", 1, options[:max_file_size]]
-          ]
+          'conditions' => conditions
         }.to_json
       ).gsub("\n","")
     end
